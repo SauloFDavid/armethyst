@@ -118,8 +118,11 @@ int BasicCPU::ID()
 			fpOP = false;
 			return decodeDataProcImm();
 			break;
-		// case TODO
-		// x101 Data Processing -- Register on page C4-278
+		case 0x0A000000: // x = 0
+		case 0x1A000000: // x = 1 
+			fpOP = false;
+			return decodeDataProcReg();
+			break;
 		default:
 			return 1; // instrução não implementada
 	}
@@ -232,6 +235,32 @@ int BasicCPU::decodeDataProcReg() {
 	//		de txt_isummation.o.txt.
 	
 	
+	switch (IR & 0x7F200000)
+	{
+		
+		case 0x0B000000:
+			
+			if (IR & 0x00400000) return 1; // sh = 1 não implementado
+			
+			// ler A e B
+			A = getW(1); 
+	
+			B = getW(0);
+			
+			// atribuir ALUctrl
+			//ALUctrl = ALUctrlFlag::ADD;
+			
+			// ATIVIDADE FUTURA: implementar informações para os estágios
+			// MEM e WB.
+
+			return 0;
+		default:
+			// instrução não implementada
+			
+			return 1;
+	}
+	
+	
 	// instrução não implementada
 	return 1;
 }
@@ -276,6 +305,9 @@ int BasicCPU::EXI()
 		case ALUctrlFlag::SUB:
 			ALUout = A - B;
 			// ATIVIDADE FUTURA: setar flags NCZF
+			return 0;
+			case ALUctrlFlag::ADD:
+			ALUout = A + B;
 			return 0;
 		default:
 			// Controle não implementado
