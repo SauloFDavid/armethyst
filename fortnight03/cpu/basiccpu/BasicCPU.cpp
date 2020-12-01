@@ -127,7 +127,10 @@ int BasicCPU::ID()
 		// implementar o GRUPO A SEGUIR
 		//
 		// x111 Data Processing -- Scalar Floating-Point and Advanced SIMD on page C4-288
-
+		case 0x0e000000: 
+		case 0x1e000000:
+			return decodeDataProcFloat();
+			break;
 		
 		// ATIVIDADE FUTURA
 		// implementar os DOIS GRUPOS A SEGUIR
@@ -347,6 +350,38 @@ int BasicCPU::decodeDataProcFloat() {
 			
 			return 0;
 
+case 0x1E202800:
+//C7.2.159 FADD (scalar) on page C7-1346
+
+// implementado apenas ftype='00'
+if (IR & 0x00C00000) return 1;
+
+fpOp = FPOpFlag::FP_REG_32;
+
+// ler A e B
+n = (IR & 0x000003E0) >> 5;
+A = getSasInt(n); // 32-bit variant
+
+m = (IR & 0x001F0000) >> 16;
+B = getSasInt(m);
+
+// registrador destino
+d = (IR & 0x0000001F);
+Rd = &(V[d]);
+
+// atribuir ALUctrl
+			ALUctrl = ALUctrlFlag::ADD;
+			
+			// atribuir MEMctrl
+			MEMctrl = MEMctrlFlag::MEM_NONE;
+			
+			// atribuir WBctrl
+			WBctrl = WBctrlFlag::RegWrite;
+			
+			// atribuir MemtoReg
+			MemtoReg = false;
+return 0;
+
 		default:
 			// instrução não implementada
 			return 1;
@@ -381,6 +416,9 @@ int BasicCPU::EXI()
 	{
 		case ALUctrlFlag::SUB:
 			ALUout = A - B;
+			return 0;
+			case ALUctrlFlag::ADD:
+			ALUout = B + A;
 			return 0;
 		default:
 			// Controle não implementado
@@ -422,10 +460,16 @@ int BasicCPU::EXF()
 			case ALUctrlFlag::SUB:
 				ALUout = Util::floatAsUint64Low(fA - fB);
 				return 0;
+				
+				case ALUctrlFlag::ADD:
+				ALUout = Util::floatAsUint64Low(fA + fB);
+				return 0;
+				
 			default:
 				// Controle não implementado
 				return 1;
 		}
+		
 	}
 	// não implementado
 	return 1;
